@@ -1,6 +1,6 @@
 (function($) {
 	$.fn.extend({
-		editImg:function(file) {
+		editImg:function(cfg) {
 			var self = $(this);
 			var canvas = self[0];
 			var cw = self.width();
@@ -11,24 +11,26 @@
 			self.data('width', cw);
 			self.data('height', ch);
 			self.data('ctx', ctx);
-			self.data('scale', 1);
-			self.data('x', 0);
-			self.data('y', 0);
-			self.data('deg', 0);
-			self.data('flipX', 0);
+			self.data('scale', cfg.scale ? cfg.scale : 1);
+			self.data('x', cfg.x ? cfg.x : 0);
+			self.data('y', cfg.y ? cfg.y : 0);
+			self.data('deg', cfg.deg ? cfg.deg : 0);
+			self.data('flipX', cfg.flipX ? cfg.flipX : 0);
 			ctx.clearRect(0, 0, cw, ch);
 			var img = new Image();
-	 		img.src = file;
+	 		img.src = cfg.file;
 	 		img.onload = function() {
 	 			var ratio = img.width / img.height;
-	 			var iw = ratio < 1 ? cw : img.width*(ch/img.height);
-	 			var ih = ratio < 1 ? img.height*(cw/img.width) : ch;
+	 			var c_ratio = cw/ch;
+	 			var iw = (ratio < 1 || c_ratio > 1) ? cw : img.width*(ch/img.height);
+	 			var ih = (ratio < 1 || c_ratio > 1) ? img.height*(cw/img.width) : ch;
 	 			self.data('iw', iw);
 				self.data('ih', ih);
-	 			ctx.drawImage(img, 0, 0, iw, ih);
-	 			
+				self.data('file', cfg.file);
+	 			//ctx.drawImage(img, 0, 0, iw, ih);
+	 			self.data('img', img);
+	 			self.repaint({});
 	 		};
-	 		self.data('img', img);
 		},
 		repaint: function(options) {
 			var self = $(this);
@@ -79,6 +81,17 @@
 			} 
 			ctx.drawImage(self.data('img'), x - cw*scale/2, y - ch*scale/2, iw*scale, ih*scale);
 			ctx.restore();
+		},
+		config: function() {
+			var self = $(this);
+			var cfg = {};
+			cfg.scale = self.data('scale');
+			cfg.x = self.data('x');
+			cfg.y = self.data('y');
+			cfg.deg = self.data('deg');
+			cfg.flipX = self.data('flipX');
+			cfg.file = self.data('file');
+			return cfg;
 		}
 	})
 })(jQuery);

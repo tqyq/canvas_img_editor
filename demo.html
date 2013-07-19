@@ -1,0 +1,189 @@
+<html manifest="xibei.manifest">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="css/main.css">
+<title>demo</title>
+<script src="js/jquery-1.7.2.min.js"></script>
+<script src="js/jquery-ui-1.8.22.min.js"></script>
+<script src="js/img.edit.js"></script>
+<script>
+
+var drag_stat = {};
+var sel_file;
+function init() {
+
+}
+function chooseFile(name, confirmCallback) {
+	var chooser = $(name);
+	chooser.trigger('click');
+	chooser.change(function(evt) {
+		if (confirmCallback) {
+			confirmCallback.call(this, $(this).val());
+		}
+	});
+}
+function edit_img(cfg) {
+	sel_file = cfg.file;
+	$("#btn_add").hide();
+	$("#c1").editImg(cfg);
+}
+$(function() {
+
+	var qh = screen.height*0.8;
+	var qw = qh;
+	var dim = {'height':qh, 'width':qw};
+	$("#quilt1").css(dim);
+	$(".quilt_main").css(dim);
+	$("#c1").css({'height':qh*0.71, 'width':qw*0.9});
+	
+	var right = $('#quilt1').offset().left + $('#quilt1').width() + 10;
+	var top = $('#quilt1').offset().top + $('#quilt1').height()/2;
+	$(".toolbar").css({left: right+'px', top: top+'px'});
+	$(".toolbar").show();
+	$("#btn_add").position({
+		of: '#quilt1',
+	});
+	$("#btn_add").css('top', '+=20');
+	$("#c1").position({of: ".quilt_main"});
+	$("#c1").css('top', '+=' + Math.round(screen.height*0.055));
+	$("#quilt1").on("click", function() {
+		if (sel_file) {
+			return;
+		}
+		chooseFile('#file1', function(file) {
+			if (file != '') {
+				edit_img({file:file});
+			}
+		});
+	});
+	$("#zoom_out").on("click", function() {
+		$("#c1").repaint({scale: 0.05});
+	});
+	$("#zoom_in").on("click", function() {
+		$("#c1").repaint({scale: -0.05});
+	});
+	$("#turn_left").on("click", function() {
+		$("#c1").repaint({deg:-10});
+	});
+	$("#turn_right").on("click", function() {
+		$("#c1").repaint({deg:10});
+	});
+	$("#flipx").on("click", function() {
+		$("#c1").repaint({flipX:1});
+	});
+	$("#round_cancel").on("click", function() {
+		init();
+	});
+	$("html").on('keydown', function(e) {
+		switch (e.which) {
+		case 37:
+			$("#c1").repaint({x:-5});
+			break;
+		case 38:
+			$("#c1").repaint({y:-5});
+			break;
+		case 39:
+			$("#c1").repaint({x: 5});
+			break;
+		case 40:
+			$("#c1").repaint({y: 5});
+			break;
+		}
+	});
+	$('.quilt_main').on('mousedown', function(e) {
+		if (sel_file) {
+			drag_stat.dragged = true;
+			drag_stat.sx = e.clientX;
+			drag_stat.sy = e.clientY;
+		}
+	});
+	$('.quilt_main').on('mouseup mouseout', function() {
+		if (sel_file) {
+			drag_stat.dragged = false;
+		}
+	});
+	$('.quilt_main').on('mousemove', function(e) {
+		if (sel_file && drag_stat.dragged) {
+			drag_stat.ex = e.clientX;
+			drag_stat.ey = e.clientY;
+			var offset_x = drag_stat.ex - drag_stat.sx;
+			var offset_y = drag_stat.ey - drag_stat.sy;
+			$("#c1").repaint({x:offset_x, y:offset_y});
+			drag_stat.sx = e.clientX;
+			drag_stat.sy = e.clientY;
+		}
+	});
+	edit_img({file:'images/sample.jpg'});
+});
+</script>
+<style type="text/css">
+.div1 {
+	padding-top: 0;
+	text-align: center;
+}
+
+.quilt_main {
+	position: relative;
+	margin: auto;
+}
+
+#quilt1 {
+	cursor: pointer;
+	display: block;
+	margin: auto;
+	z-index: 1;
+	position: relative;
+}
+
+#quilt1 img{
+	position: absolute;
+	width: 100px;
+	height: 100px;
+}
+
+#c1 {
+	position: absolute;
+	border: 1px solid #aaa;
+}
+
+.toolbar {
+	width: 30px;
+	height: 150px;
+	display: none;
+	position: absolute;
+}
+
+.toolbar img {
+	width: 30px;
+	height: 30px;
+	display: block;
+	cursor: pointer;
+	padding: 5px 0 0 0;
+}
+
+#round_cancel {
+	padding: 15px 0 0 0;
+}
+
+</style>
+</head>
+<body class="body_with_bg">
+<input style="display:none;" id="file1" type="file" accept="image/*"/>
+<div class="div1">
+	<div class="quilt_main">
+		<div id="quilt1" >
+			<img id="btn_add" src="images/btn_add.png" />
+		</div>
+		<canvas id="c1" ></canvas>
+	</div>
+</div>
+<div class="toolbar">
+    <img id="zoom_out" src="images/btn_zoom_out.png" />
+	<img id="zoom_in" src="images/btn_zoom_in.png"/>
+	<img id="turn_left" src="images/btn_turn_left.png"/>
+	<img id="turn_right" src="images/btn_turn_right.png"/>
+	<img id="flipx" src="images/btn_spin.png"/>
+	<img id="round_cancel" src="images/btn_round_cancel.png"/>
+</div>
+</body>
+</html>
